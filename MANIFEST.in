@@ -1,0 +1,5 @@
+include LICENSE
+include README.md
+recursive-include vitals/static *
+recursive-include vitals/templates *
+
