@@ -6,7 +6,7 @@ from .conf import conf
 
 def run_checks(checks_to_run=None):
     if not checks_to_run:
-        checks_to_run = conf.enabled_checks.keys()
+        checks_to_run = conf.enabled_checks
 
     failed = {}
     ok = []
