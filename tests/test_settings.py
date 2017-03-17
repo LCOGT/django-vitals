@@ -9,3 +9,4 @@ DATABASES = {
 INSTALLED_APPS = [
     'vitals',
 ]
+ROOT_URLCONF = 'vitals.urls'

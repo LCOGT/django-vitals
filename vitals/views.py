@@ -4,13 +4,12 @@ from django.http import JsonResponse
 from .conf import conf
 
 
-def run_checks(request):
+def run_checks(checks_to_run=None):
+    if not checks_to_run:
+        checks_to_run = conf.enabled_checks.keys()
+
     failed = {}
     ok = []
-    if request.GET.get('check'):
-        checks_to_run = [request.GET['check']]
-    else:
-        checks_to_run = conf.enabled_checks.keys()
 
     for c in checks_to_run:
         check = conf.enabled_checks[c]
@@ -26,7 +25,9 @@ def run_checks(request):
 
 class VitalsJSONView(View):
     def get(self, request):
-        results = run_checks(request)
+        checks_to_run = request.GET.get('checks', '').split(',')
+        checks_to_run = list(filter(len, checks_to_run))  # filter empty string
+        results = run_checks(checks_to_run)
         if results['failed']:
             status = 500
         else:
