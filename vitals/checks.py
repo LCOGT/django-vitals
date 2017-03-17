@@ -12,7 +12,7 @@ class BaseHealthCheck(object):
         self.errors = []
 
     def check(self):
-        raise NotImplementedError
+        raise NotImplementedError('Must implement check() method')
 
     def add_error(self, message):
         self.errors.append(message)
@@ -21,12 +21,7 @@ class BaseHealthCheck(object):
         try:
             self.check()
         except Exception as exc:
-            raise exc
             self.add_error('Unexpected exception: {}'.format(exc))
-
-    @property
-    def id(self):
-        return self.__class__.__name__
 
 
 class DatabaseCheck(BaseHealthCheck):

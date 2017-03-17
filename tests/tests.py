@@ -5,6 +5,7 @@ from requests.exceptions import HTTPError
 
 from vitals.conf import import_string, conf, DEFAULT_CHECKS
 from vitals.checks import DatabaseCheck, CacheCheck, StorageCheck, HTTPCheck
+from vitals.checks import BaseHealthCheck
 from vitals.views import run_checks
 
 
@@ -75,6 +76,12 @@ class TestChecks(TestCase):
         check.run_check()
         self.assertFalse(check.errors)
 
+    @patch('vitals.checks.CacheCheck.check', side_effect=Exception)
+    def test_check_unexecpted_exception(self, mock_check):
+        check = CacheCheck(name='TestCacheCheck')
+        check.run_check()
+        self.assertEqual(len(check.errors), 1)
+
 
 class TestViews(TestCase):
     def test_run_checks(self):
@@ -108,3 +115,22 @@ class TestViews(TestCase):
         self.assertEqual(result['ok'], ['DatabaseCheck', 'CacheCheck'])
         self.assertNotIn('StorageCheck', result['ok'])
         self.assertNotIn('StorageCheck', result['failed'])
+
+    @patch('vitals.checks.CacheCheck.check', side_effect=Exception)
+    def test_jsonview_check_fails(self, check_mock):
+        result = self.client.get('/')
+        self.assertEqual(len(result.json()['failed']), 1)
+        self.assertEqual(len(result.json()['ok']), 2)
+        self.assertEqual(result.status_code, 500)
+
+
+class BadCheck(BaseHealthCheck):
+    pass
+
+
+class TestBadCheckImpl(TestCase):
+    def test_check_has_no_check(self):
+        bc = BadCheck(name='notgonnawork')
+        bc.run_check()
+        self.assertEqual(len(bc.errors), 1)
+        self.assertIn('Must implement', bc.errors[0])
