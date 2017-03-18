@@ -25,7 +25,6 @@ If something is down:
 
 ```json
 {
-
     "ok": [
         "DatabaseCheck",
         "CacheCheck",
@@ -41,9 +40,9 @@ If something is down:
 
 a http code `500` is returned instead.
 
-Subsets of checks can be run by passing the `check` paramter to the endpoint: `?checks=DatabaseCheck,CacheCheck`
+Subsets of checks can be run by passing the `check` parameter to the endpoint: `?checks=DatabaseCheck,CacheCheck`
 
-This can be particulalary useful when used along with load balancers, container orchestration and other
+This can be particularity useful when used along with load balancers, container orchestration and other
 infrastructure tools that can take automatic actions when problems arise.
 
 ## Requirements
