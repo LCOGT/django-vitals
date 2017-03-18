@@ -2,6 +2,7 @@ from django.test import TestCase, modify_settings, override_settings
 from django.core.files.storage import Storage
 from unittest.mock import MagicMock, patch
 from requests.exceptions import HTTPError
+import json
 
 from vitals.conf import import_string, conf, DEFAULT_CHECKS
 from vitals.checks import DatabaseCheck, CacheCheck, StorageCheck, HTTPCheck
@@ -101,16 +102,18 @@ class TestViews(TestCase):
             run_checks(['notacheck'])
 
     def test_jsonview(self):
-        result = self.client.get('/').json()
+        result = json.loads(str(self.client.get('/').content, encoding='utf8'))
         self.assertEqual(len(result['ok']), len(DEFAULT_CHECKS))
 
     def test_jsonview_check_param(self):
-        result = self.client.get('/?checks=DatabaseCheck').json()
+        response = self.client.get('/?checks=DatabaseCheck')
+        result = json.loads(str(response.content, encoding='utf8'))
         self.assertEqual(len(result['ok']), 1)
         self.assertEqual(result['ok'][0], 'DatabaseCheck')
 
     def test_jsonview_check_param_multiple(self):
-        result = self.client.get('/?checks=DatabaseCheck,CacheCheck').json()
+        response = self.client.get('/?checks=DatabaseCheck,CacheCheck')
+        result = json.loads(str(response.content, encoding='utf8'))
         self.assertEqual(len(result['ok']), 2)
         self.assertEqual(result['ok'], ['DatabaseCheck', 'CacheCheck'])
         self.assertNotIn('StorageCheck', result['ok'])
@@ -118,10 +121,11 @@ class TestViews(TestCase):
 
     @patch('vitals.checks.CacheCheck.check', side_effect=Exception)
     def test_jsonview_check_fails(self, check_mock):
-        result = self.client.get('/')
-        self.assertEqual(len(result.json()['failed']), 1)
-        self.assertEqual(len(result.json()['ok']), 2)
-        self.assertEqual(result.status_code, 500)
+        response = self.client.get('/')
+        result = json.loads(str(response.content, encoding='utf8'))
+        self.assertEqual(len(result['failed']), 1)
+        self.assertEqual(len(result['ok']), 2)
+        self.assertEqual(response.status_code, 500)
 
 
 class BadCheck(BaseHealthCheck):
